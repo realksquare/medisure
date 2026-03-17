@@ -38,9 +38,9 @@ function App() {
               }}>
                 <ShieldCheck size={32} color="white" strokeWidth={2.5} />
               </div>
-              <h1 style={{ margin: 0 }}>CertiSure Verification System</h1>
+              <h1 style={{ margin: 0 }}>CertiSure</h1>
             </div>
-            <h2 style={{ color: 'var(--text-main)' }}>Certificate Authentication - Fast, Secure, Free!</h2>
+            <h2 style={{ color: 'var(--text-main)' }}>Certificate Authentication System</h2>
             <p>Please select your role to continue.</p>
             <div className="role-buttons">
               <button onClick={() => setUserRole('institution')}>I am an Institution</button>
