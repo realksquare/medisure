@@ -6,52 +6,30 @@ const { connectToDB, getDB } = require('./db');
 const app = express();
 const PORT = process.env.PORT || 3000;
 
-// --- THE ULTIMATE CORS CONFIGURATION ---
-const allowedOrigins = [
-    'https://certisure-frontend.vercel.app', // Your main production URL
-    /https:\/\/certisure-frontend-.*\.vercel\.app$/, // Regex for all Vercel preview URLs
-    /http:\/\/localhost:\d+$/ // Regex for all localhost ports
-];
-
 const corsOptions = {
     origin: function (origin, callback) {
-        // Allow requests with no origin (like mobile apps or curl requests)
-        if (!origin) return callback(null, true);
-
-        if (allowedOrigins.some(pattern => {
-            if (pattern instanceof RegExp) {
-                return pattern.test(origin);
-            }
-            return pattern === origin;
-        })) {
-            callback(null, true);
-        } else {
-            callback(new Error('Not allowed by CORS'));
-        }
+        callback(null, true);
     },
     credentials: true,
     optionsSuccessStatus: 200,
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-    allowedHeaders: ['Content-Type', 'Authorization']
+    allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With', 'Accept']
 };
 
 app.use(cors(corsOptions));
+app.options('*', cors(corsOptions));
 app.use(express.json());
-// --- END OF CORS CONFIGURATION ---
 
-
-// Database connection middleware
 app.use(async (req, res, next) => {
     try {
         await connectToDB();
         next();
     } catch (error) {
-        console.error('Database connection error:', error);
+        console.error(error);
         res.status(500).json({ message: 'Database connection failed' });
     }
 });
 
-// Helper function to create a stable, deterministic hash
 function createStableHash(data) {
     const sortObject = (obj) => {
         if (typeof obj !== 'object' || obj === null) return obj;
@@ -65,12 +43,10 @@ function createStableHash(data) {
     return crypto.createHash('sha256').update(stringToHash).digest('hex');
 }
 
-// Simple test endpoint
 app.get('/', (req, res) => {
     res.json({ message: 'CertiSure Backend is running!' });
 });
 
-// API endpoint for creating certificate records
 app.post('/api/create-record', async (req, res) => {
     try {
         const { certificateData } = req.body;
@@ -86,12 +62,11 @@ app.post('/api/create-record', async (req, res) => {
         await db.collection('certificates').insertOne({ ...certificateData, dataHash });
         res.status(201).json({ message: 'Certificate record created successfully.' });
     } catch (error) {
-        console.error('Error in /api/create-record:', error);
+        console.error(error);
         res.status(500).json({ message: error.message });
     }
 });
 
-// API endpoint for verifying certificate records
 app.post('/api/verify-record', async (req, res) => {
     try {
         const { dataHash } = req.body;
@@ -107,15 +82,13 @@ app.post('/api/verify-record', async (req, res) => {
             res.status(404).json({ verified: false, message: 'Verification Failed: Certificate not found.' });
         }
     } catch (error) {
-        console.error('Error in /api/verify-record:', error);
+        console.error(error);
         res.status(500).json({ message: error.message });
     }
 });
 
-// Export for Vercel Serverless
 module.exports = app;
 
-// Only listen if not in serverless environment
 if (require.main === module) {
     connectToDB().then(() => {
         app.listen(PORT, () => {
