@@ -10,10 +10,11 @@ function App() {
   const [isDark, setIsDark] = useState(true);
 
   useEffect(() => {
+    const root = document.documentElement;
     if (isDark) {
-      document.documentElement.classList.add('light-theme');
+      root.classList.add('dark-theme');
     } else {
-      document.documentElement.classList.remove('light-theme');
+      root.classList.remove('dark-theme');
     }
   }, [isDark]);
 
@@ -32,7 +33,6 @@ function App() {
                 <h1>MediSure</h1>
               </div>
               <p style={{ marginBottom: '32px' }}>Secure Medical Record Authentication System</p>
-
               <div className="role-buttons">
                 <button onClick={() => setUserRole('institution')}>I am a Hospital / Institution</button>
                 <button onClick={() => setUserRole('verifier')}>I am a Verifier</button>
@@ -41,7 +41,6 @@ function App() {
 
             <div className="welcome-container">
               <h3 style={{ marginBottom: '24px', borderBottom: '1px solid var(--border-color)', paddingBottom: '12px' }}>Why MediSure?</h3>
-
               <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
                 <div>
                   <h4 style={{ marginBottom: '8px' }}>The Problem</h4>
@@ -59,7 +58,6 @@ function App() {
             <button className="back-button" onClick={() => setUserRole(null)}>
               &larr; Back
             </button>
-
             {userRole === 'institution' && (
               <div className="welcome-container" style={{ textAlign: 'center' }}>
                 <h2>Institution Dashboard</h2>
@@ -69,7 +67,6 @@ function App() {
                 </div>
               </div>
             )}
-
             {userRole === 'institution-basic' && <CreateCertificateForm />}
             {userRole === 'institution-mint' && <InstitutionPdfUpload />}
             {userRole === 'verifier' && <VerifyCertificateForm />}
