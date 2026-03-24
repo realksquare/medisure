@@ -215,7 +215,7 @@ export default function VerifyCertificateForm() {
                 required
               />
               <button type="button" className="secondary-btn" onClick={scanning ? stopScanner : startScanner}>
-                {scanning ? '✋ Stop Scanner' : '📷 Scan QR Code'}
+                {scanning ? 'Stop Scanner' : 'Scan QR Code'}
               </button>
               <div id="qr-reader" style={{ width: '100%', marginTop: '10px', marginBottom: '10px' }} />
             </>
@@ -224,7 +224,7 @@ export default function VerifyCertificateForm() {
           {inputMethod === 'file' && (
             <>
               <p style={{ fontSize: '0.85rem', color: 'var(--text-muted)', marginBottom: '12px' }}>
-                Upload a PDF or image containing the MediSure QR code — the hash will be extracted automatically.
+                Upload a PDF or image containing the MediSure QR code.
               </p>
               <div className="file-upload-wrapper">
                 <input
@@ -238,11 +238,10 @@ export default function VerifyCertificateForm() {
                   <span>{qrFile ? qrFile.name : 'Choose PDF or image with QR code'}</span>
                 </label>
               </div>
-              {loading && <p style={{ fontSize: '0.85rem', color: 'var(--text-muted)' }}>🔍 Scanning for QR code...</p>}
+              {loading && <p style={{ fontSize: '0.85rem', color: 'var(--text-muted)' }}>Scanning for QR code...</p>}
               {hashInput && (
                 <div className="hash-preview">
-                  <span className="record-section-label">Hash extracted ✓</span>
-                  <p>{hashInput}</p>
+                  <span className="record-section-label">Hash extracted! Submit to continue...</span>
                 </div>
               )}
             </>
@@ -261,7 +260,7 @@ export default function VerifyCertificateForm() {
             <input type="file" id="mint-verify-input" accept=".pdf,.jpg,.jpeg,.png" onChange={(e) => setFile(e.target.files[0])} required />
             <label htmlFor="mint-verify-input" className={`file-upload-label ${file ? 'has-file' : ''}`}>
               <span className="file-upload-icon">{file ? '📄' : '📁'}</span>
-              <span>{file ? file.name : 'Choose file — PDF, JPG, or PNG'}</span>
+              <span>{file ? file.name : 'Choose file - PDF, JPG, or PNG'}</span>
             </label>
           </div>
           <button type="submit" disabled={loading}>
@@ -272,7 +271,7 @@ export default function VerifyCertificateForm() {
 
       {errorMessage && (
         <div className="result-box error-box" style={{ marginTop: '24px' }}>
-          <p className="result-title">❌ {errorMessage}</p>
+          <p className="result-title">❌{errorMessage}</p>
         </div>
       )}
 
