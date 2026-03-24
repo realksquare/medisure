@@ -34,13 +34,20 @@ export default function VerifyCertificateForm() {
     if (scannerRef.current) scannerRef.current.stop().then(() => setScanning(false));
   };
 
+  const switchMode = (newMode) => {
+    setMode(newMode);
+    setRecord(null);
+    setErrorMessage(null);
+    if (scanning) stopScanner();
+  };
+
   const handleBasicVerify = async (e) => {
     e.preventDefault();
     setErrorMessage(null);
     setRecord(null);
     setLoading(true);
     try {
-      const res = await fetch(`${import.meta.env.VITE_API_URL}/api/verify-record`, {
+      const res = await fetch(`${import.meta.env.VITE_BACKEND_URL}/api/verify-record`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ dataHash: hashInput.trim() }),
@@ -64,7 +71,7 @@ export default function VerifyCertificateForm() {
     const formData = new FormData();
     formData.append('file', file);
     try {
-      const res = await fetch(`${import.meta.env.VITE_API_URL}/api/verify-file`, {
+      const res = await fetch(`${import.meta.env.VITE_BACKEND_URL}/api/verify-file`, {
         method: 'POST',
         body: formData,
       });
@@ -79,17 +86,15 @@ export default function VerifyCertificateForm() {
   };
 
   return (
-    <div>
+    <div className="form-container">
       <h2>Verify Medical Record</h2>
 
-      <div>
-        <button onClick={() => { setMode('basic'); setRecord(null); setErrorMessage(null); }}
-          style={{ fontWeight: mode === 'basic' ? 'bold' : 'normal' }}>
-          Basic (QR / Hash)
+      <div className="tab-group">
+        <button className={`tab-btn ${mode === 'basic' ? 'active' : ''}`} onClick={() => switchMode('basic')}>
+          Basic — QR / Hash
         </button>
-        <button onClick={() => { setMode('mint'); setRecord(null); setErrorMessage(null); }}
-          style={{ fontWeight: mode === 'mint' ? 'bold' : 'normal' }}>
-          Mint (File Upload)
+        <button className={`tab-btn ${mode === 'mint' ? 'active' : ''}`} onClick={() => switchMode('mint')}>
+          Mint — File Upload
         </button>
       </div>
 
@@ -102,57 +107,72 @@ export default function VerifyCertificateForm() {
             onChange={(e) => setHashInput(e.target.value)}
             required
           />
-          {!scanning
-            ? <button type="button" onClick={startScanner}>📷 Scan QR Code</button>
-            : <button type="button" onClick={stopScanner}>✋ Stop Scanner</button>
-          }
-          <div id="qr-reader" style={{ width: '300px', marginTop: '10px' }} />
-          <button type="submit" disabled={loading}>{loading ? 'Verifying...' : 'Verify Record'}</button>
+          <button type="button" className="secondary-btn" onClick={scanning ? stopScanner : startScanner}>
+            {scanning ? '✋ Stop Scanner' : '📷 Scan QR Code'}
+          </button>
+          <div id="qr-reader" style={{ width: '100%', marginTop: '10px', marginBottom: '10px' }} />
+          <button type="submit" disabled={loading}>
+            {loading ? 'Verifying...' : 'Verify Record'}
+          </button>
         </form>
       )}
 
       {mode === 'mint' && (
         <form onSubmit={handleMintVerify}>
-          <p style={{ color: 'orange' }}>⚠️ Caution: Upload the exact original file. Even minor edits will flag it as tampered.</p>
+          <p className="caution-text">⚠️ Upload the exact original file. Even one pixel change will flag it as tampered.</p>
           <input
             type="file"
             accept=".pdf,.jpg,.jpeg,.png"
             onChange={(e) => setFile(e.target.files[0])}
             required
           />
-          <button type="submit" disabled={loading}>{loading ? 'Verifying...' : 'Verify File'}</button>
+          <button type="submit" disabled={loading}>
+            {loading ? 'Verifying...' : 'Verify File'}
+          </button>
         </form>
       )}
 
       {errorMessage && (
-        <div style={{ marginTop: '20px', padding: '15px', border: '1px solid red', borderRadius: '8px' }}>
-          <h3 style={{ color: 'red' }}>❌ {errorMessage}</h3>
+        <div className="result-box error-box">
+          <p className="result-title">❌ {errorMessage}</p>
         </div>
       )}
 
       {record && (
-        <div style={{ marginTop: '20px', padding: '15px', border: '1px solid green', borderRadius: '8px' }}>
-          <h3 style={{ color: 'green' }}>✅ Record Verified!</h3>
+        <div className="result-box success-box">
+          <p className="result-title">✅ Record Verified!</p>
 
-          <h4>Patient Information</h4>
-          <p><strong>Name:</strong> {record.patientName}</p>
-          <p><strong>Gender:</strong> {record.gender}</p>
-          <p><strong>Age:</strong> {record.age}</p>
-          <p><strong>Date of Birth:</strong> {record.dob}</p>
-          <p><strong>Register Number:</strong> {record.registerNumber}</p>
-          <p><strong>Blood Group:</strong> {record.bloodGroup}</p>
-          <p><strong>Contact:</strong> {record.contactNumber}</p>
-          <p><strong>Address:</strong> {record.address}</p>
-          <p><strong>Existing Conditions:</strong> {record.existingConditions}</p>
+          <div className="record-section">
+            <p className="record-section-label">Patient Information</p>
+            <div className="record-grid">
+              <span>Name</span><span>{record.patientName}</span>
+              <span>Gender</span><span>{record.gender}</span>
+              <span>Age</span><span>{record.age}</span>
+              <span>Date of Birth</span><span>{record.dob}</span>
+              <span>Register Number</span><span>{record.registerNumber}</span>
+              <span>Blood Group</span><span>{record.bloodGroup}</span>
+              <span>Contact</span><span>{record.contactNumber}</span>
+              <span>Address</span><span>{record.address}</span>
+              <span>Existing Conditions</span><span>{record.existingConditions}</span>
+            </div>
+          </div>
 
-          <h4>Medical Details</h4>
-          <p><strong>Record Type:</strong> {record.recordType}</p>
-          <p><strong>Diagnosis:</strong> {record.diagnosis}</p>
-          <p><strong>Doctor:</strong> {record.doctorName}</p>
+          <div className="record-section">
+            <p className="record-section-label">Medical Details</p>
+            <div className="record-grid">
+              <span>Record Type</span><span>{record.recordType}</span>
+              <span>Diagnosis</span><span>{record.diagnosis}</span>
+              <span>Doctor</span><span>{record.doctorName}</span>
+            </div>
+          </div>
 
-          <h4>Issuance Details</h4>
-          <p><strong>Issue Date:</strong> {record.issueDate}</p>
-          <p><strong>Issued By:</strong> {record.issuerName}</p>
+          <div className="record-section">
+            <p className="record-section-label">Issuance Details</p>
+            <div className="record-grid">
+              <span>Issue Date</span><span>{record.issueDate}</span>
+              <span>Issued By</span><span>{record.issuerName}</span>
+            </div>
+          </div>
         </div>
       )}
     </div>
