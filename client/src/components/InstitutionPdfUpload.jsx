@@ -1,112 +1,133 @@
-import React, { useState, useRef } from 'react';
-
-const pdfjsLib = window['pdfjs-dist/build/pdf'];
-pdfjsLib.GlobalWorkerOptions.workerSrc = `https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.4.120/pdf.worker.min.js`;
+import React, { useState } from 'react';
+import QRCode from 'qrcode';
 
 export default function InstitutionPdfUpload() {
-  const [selectedFile, setSelectedFile] = useState(null);
-  const [isProcessing, setIsProcessing] = useState(false);
+  const [formData, setFormData] = useState({
+    patientName: '', gender: '', age: '', dob: '',
+    registerNumber: '', bloodGroup: '', existingConditions: '',
+    contactNumber: '', address: '', recordType: '',
+    diagnosis: '', doctorName: '', issueDate: '', issuerName: ''
+  });
+  const [file, setFile] = useState(null);
+  const [qrCode, setQrCode] = useState(null);
   const [response, setResponse] = useState(null);
   const [errorMessage, setErrorMessage] = useState(null);
-  const canvasRef = useRef(null);
+  const [isProcessing, setIsProcessing] = useState(false);
 
-  const handleFileChange = (event) => {
-    const file = event.target.files[0];
-    setResponse(null);
-    setErrorMessage(null);
-    setSelectedFile(file || null);
+  const handleChange = (e) => {
+    setFormData({ ...formData, [e.target.name]: e.target.value });
   };
 
-  const handleProcessAndCreate = async () => {
-    if (!selectedFile) {
-      setErrorMessage('Please select a PDF file first.');
-      return;
-    }
-
-    setIsProcessing(true);
+  const handleFileChange = (e) => {
+    setFile(e.target.files[0] || null);
     setResponse(null);
     setErrorMessage(null);
+    setQrCode(null);
+  };
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    if (!file) return setErrorMessage('Please select a file.');
+    setIsProcessing(true);
+    setErrorMessage(null);
+    setResponse(null);
+    setQrCode(null);
 
     try {
-      const fileReader = new FileReader();
-      fileReader.onload = async (e) => {
-        try {
-          const typedarray = new Uint8Array(e.target.result);
-          const pdf = await pdfjsLib.getDocument(typedarray).promise;
-          const page = await pdf.getPage(1);
+      const payload = new FormData();
+      payload.append('file', file);
+      payload.append('recordData', JSON.stringify(formData));
 
-          const viewport = page.getViewport({ scale: 2.0 });
-          const canvas = canvasRef.current;
-          canvas.height = viewport.height;
-          canvas.width = viewport.width;
-          const context = canvas.getContext('2d');
-          await page.render({ canvasContext: context, viewport: viewport }).promise;
+      const res = await fetch(`${import.meta.env.VITE_API_URL}/api/create-record-file`, {
+        method: 'POST',
+        body: payload,
+      });
 
-          const imageData = context.getImageData(0, 0, canvas.width, canvas.height);
-          const qrCode = window.jsQR(imageData.data, imageData.width, imageData.height);
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.message || 'Failed to create mint record.');
 
-          if (!qrCode) {
-            throw new Error('No QR code found in the PDF.');
-          }
-
-          let certificateData;
-          try {
-            certificateData = JSON.parse(qrCode.data);
-          } catch (jsonError) {
-            throw new Error('Invalid QR Code for creation. The QR code must contain raw certificate data in JSON format, not a URL or verification proof.');
-          }
-          
-          if (!certificateData.studentName || !certificateData.courseName) {
-            throw new Error('Invalid data format in QR Code. Required fields like "studentName" and "courseName" are missing.');
-          }
-
-          const res = await fetch('http://localhost:3000/api/certificates', {
-              method: 'POST',
-              headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify(certificateData),
-          });
-          
-          const data = await res.json();
-          if (!res.ok) throw new Error(data.message);
-
-          setResponse(data);
-        } catch (err) {
-            setErrorMessage(err.message);
-        } finally {
-            setIsProcessing(false);
-        }
-      };
-      fileReader.readAsArrayBuffer(selectedFile);
+      const qr = await QRCode.toDataURL(`${import.meta.env.VITE_APP_URL}/verify/${data.dataHash}`);
+      setQrCode(qr);
+      setResponse(data);
+      setFile(null);
+      setFormData({
+        patientName: '', gender: '', age: '', dob: '',
+        registerNumber: '', bloodGroup: '', existingConditions: '',
+        contactNumber: '', address: '', recordType: '',
+        diagnosis: '', doctorName: '', issueDate: '', issuerName: ''
+      });
     } catch (err) {
       setErrorMessage(err.message);
+    } finally {
       setIsProcessing(false);
     }
   };
 
   return (
     <div>
-      <h2>Create by Uploading Existing Certificate</h2>
-      <p>1. Select a PDF that contains a QR code with the certificate's raw data.</p>
-      <input type="file" accept=".pdf" onChange={handleFileChange} />
-      {selectedFile && (
-        <div style={{ marginTop: '15px' }}>
-          <p>2. Process the selected file: <strong>{selectedFile.name}</strong></p>
-          <button onClick={handleProcessAndCreate} disabled={isProcessing}>
-            {isProcessing ? 'Processing...' : 'Create Record from PDF'}
-          </button>
+      <h2>Create Mint Medical Record</h2>
+      <p style={{ color: 'orange' }}>⚠️ Mint mode hashes the exact file. Any future modification — even one pixel — will flag it as tampered.</p>
+
+      <form onSubmit={handleSubmit}>
+        <h4>Upload Medical Document</h4>
+        <input type="file" accept=".pdf,.jpg,.jpeg,.png" onChange={handleFileChange} required />
+        {file && <p>Selected: <strong>{file.name}</strong></p>}
+
+        <h4>Patient Information</h4>
+        <input type="text" name="patientName" placeholder="Patient Name" value={formData.patientName} onChange={handleChange} required />
+        <select name="gender" value={formData.gender} onChange={handleChange} required>
+          <option value="">Select Gender</option>
+          <option value="Male">Male</option>
+          <option value="Female">Female</option>
+          <option value="Other">Other</option>
+        </select>
+        <input type="number" name="age" placeholder="Age" value={formData.age} onChange={handleChange} required />
+        <input type="date" name="dob" value={formData.dob} onChange={handleChange} required />
+        <input type="text" name="registerNumber" placeholder="Register Number" value={formData.registerNumber} onChange={handleChange} required />
+        <select name="bloodGroup" value={formData.bloodGroup} onChange={handleChange} required>
+          <option value="">Select Blood Group</option>
+          {['A+', 'A-', 'B+', 'B-', 'AB+', 'AB-', 'O+', 'O-'].map(bg => (
+            <option key={bg} value={bg}>{bg}</option>
+          ))}
+        </select>
+        <input type="tel" name="contactNumber" placeholder="Contact Number" value={formData.contactNumber} onChange={handleChange} required />
+        <input type="text" name="address" placeholder="Address" value={formData.address} onChange={handleChange} required />
+        <input type="text" name="existingConditions" placeholder="Existing Health Conditions (or 'None')" value={formData.existingConditions} onChange={handleChange} required />
+
+        <h4>Medical Details</h4>
+        <select name="recordType" value={formData.recordType} onChange={handleChange} required>
+          <option value="">Select Record Type</option>
+          <option value="Lab Report">Lab Report</option>
+          <option value="Prescription">Prescription</option>
+          <option value="Discharge Summary">Discharge Summary</option>
+          <option value="Vaccination Record">Vaccination Record</option>
+          <option value="Radiology Report">Radiology Report</option>
+        </select>
+        <input type="text" name="diagnosis" placeholder="Diagnosis" value={formData.diagnosis} onChange={handleChange} required />
+        <input type="text" name="doctorName" placeholder="Doctor Name" value={formData.doctorName} onChange={handleChange} required />
+
+        <h4>Issuance Details</h4>
+        <input type="date" name="issueDate" value={formData.issueDate} onChange={handleChange} required />
+        <input type="text" name="issuerName" placeholder="Issuer Name / Hospital" value={formData.issuerName} onChange={handleChange} required />
+
+        <button type="submit" disabled={isProcessing}>
+          {isProcessing ? 'Processing...' : 'Create Mint Record'}
+        </button>
+      </form>
+
+      {errorMessage && (
+        <div style={{ marginTop: '20px', padding: '15px', border: '1px solid red', borderRadius: '8px' }}>
+          <p style={{ color: 'red' }}>❌ {errorMessage}</p>
         </div>
       )}
-      
-      {errorMessage && <p style={{ color: 'red', marginTop: '15px' }}>{errorMessage}</p>}
-      
-      {response && (
+
+      {response && qrCode && (
         <div style={{ marginTop: '20px', padding: '15px', border: '2px solid green', borderRadius: '8px' }}>
-          <h3 style={{ color: 'green' }}>&#10004; Record Created Successfully!</h3>
-          <p>Official QR Code:</p>
-          <img src={response.qrCode} alt="Official CertiSure QR Code" />
+          <h3 style={{ color: 'green' }}>✅ Mint Record Created!</h3>
+          <p>Scan this QR to verify the exact original file:</p>
+          <img src={qrCode} alt="Mint Record QR Code" />
         </div>
       )}
-      <canvas ref={canvasRef} style={{ display: 'none' }}></canvas>
     </div>
   );
 }

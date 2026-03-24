@@ -11,7 +11,7 @@ const router = createBrowserRouter([
     element: <App />,
   },
   {
-    path: '/verify/:id', // This is the route for our QR code
+    path: '/verify/:hash',
     element: <VerificationPage />,
   },
 ]);

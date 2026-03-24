@@ -1,15 +1,16 @@
 const express = require('express');
 const crypto = require('crypto');
 const cors = require('cors');
+const multer = require('multer');
+const sharp = require('sharp');
 const { connectToDB, getDB } = require('./db');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
+const upload = multer({ storage: multer.memoryStorage() });
 
 const corsOptions = {
-    origin: function (origin, callback) {
-        callback(null, true);
-    },
+    origin: function (origin, callback) { callback(null, true); },
     credentials: true,
     optionsSuccessStatus: 200,
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
@@ -25,7 +26,6 @@ app.use(async (req, res, next) => {
         await connectToDB();
         next();
     } catch (error) {
-        console.error(error);
         res.status(500).json({ message: 'Database connection failed' });
     }
 });
@@ -38,31 +38,32 @@ function createStableHash(data) {
             return acc;
         }, {});
     };
-    const sortedData = sortObject(data);
-    const stringToHash = JSON.stringify(sortedData);
-    return crypto.createHash('sha256').update(stringToHash).digest('hex');
+    return crypto.createHash('sha256').update(JSON.stringify(sortObject(data))).digest('hex');
+}
+
+async function hashFileBuffer(buffer, mimetype) {
+    let normalizedBuffer = buffer;
+    if (mimetype === 'image/jpeg' || mimetype === 'image/png') {
+        normalizedBuffer = await sharp(buffer).removeMetadata().toBuffer();
+    }
+    return crypto.createHash('sha256').update(normalizedBuffer).digest('hex');
 }
 
 app.get('/', (req, res) => {
-    res.json({ message: 'CertiSure Backend is running!' });
+    res.json({ message: 'MediSure Backend is running!' });
 });
 
 app.post('/api/create-record', async (req, res) => {
     try {
-        const { certificateData } = req.body;
-        if (!certificateData) {
-            return res.status(400).json({ message: 'Certificate data is required.' });
-        }
-        const dataHash = createStableHash(certificateData);
+        const { recordData } = req.body;
+        if (!recordData) return res.status(400).json({ message: 'Record data is required.' });
+        const dataHash = createStableHash(recordData);
         const db = getDB();
-        const existing = await db.collection('certificates').findOne({ dataHash: dataHash });
-        if (existing) {
-            return res.status(409).json({ message: 'This certificate already exists in the database.' });
-        }
-        await db.collection('certificates').insertOne({ ...certificateData, dataHash });
-        res.status(201).json({ message: 'Certificate record created successfully.' });
+        const existing = await db.collection('medical_records').findOne({ dataHash });
+        if (existing) return res.status(409).json({ message: 'This record already exists.' });
+        await db.collection('medical_records').insertOne({ ...recordData, dataHash, mode: 'basic' });
+        res.status(201).json({ message: 'Medical record created successfully.', dataHash });
     } catch (error) {
-        console.error(error);
         res.status(500).json({ message: error.message });
     }
 });
@@ -70,19 +71,49 @@ app.post('/api/create-record', async (req, res) => {
 app.post('/api/verify-record', async (req, res) => {
     try {
         const { dataHash } = req.body;
-        if (!dataHash) {
-            return res.status(400).json({ message: 'Data hash is required.' });
-        }
+        if (!dataHash) return res.status(400).json({ message: 'Data hash is required.' });
         const db = getDB();
-        const foundCertificate = await db.collection('certificates').findOne({ dataHash: dataHash });
-        if (foundCertificate) {
-            const { _id, dataHash, ...certDetails } = foundCertificate;
-            res.status(200).json({ verified: true, certificate: certDetails });
+        const found = await db.collection('medical_records').findOne({ dataHash });
+        if (found) {
+            const { _id, dataHash: _, mode, ...details } = found;
+            res.status(200).json({ verified: true, record: details });
         } else {
-            res.status(404).json({ verified: false, message: 'Verification Failed: Certificate not found.' });
+            res.status(404).json({ verified: false, message: 'Verification Failed: Record not found.' });
         }
     } catch (error) {
-        console.error(error);
+        res.status(500).json({ message: error.message });
+    }
+});
+
+app.post('/api/create-record-file', upload.single('file'), async (req, res) => {
+    try {
+        if (!req.file) return res.status(400).json({ message: 'File is required.' });
+        if (!req.body.recordData) return res.status(400).json({ message: 'Record data is required.' });
+        const parsedData = JSON.parse(req.body.recordData);
+        const fileHash = await hashFileBuffer(req.file.buffer, req.file.mimetype);
+        const db = getDB();
+        const existing = await db.collection('medical_records').findOne({ fileHash });
+        if (existing) return res.status(409).json({ message: 'This file record already exists.' });
+        await db.collection('medical_records').insertOne({ ...parsedData, fileHash, mode: 'mint' });
+        res.status(201).json({ message: 'Mint record created successfully.', fileHash });
+    } catch (error) {
+        res.status(500).json({ message: error.message });
+    }
+});
+
+app.post('/api/verify-file', upload.single('file'), async (req, res) => {
+    try {
+        if (!req.file) return res.status(400).json({ message: 'File is required.' });
+        const fileHash = await hashFileBuffer(req.file.buffer, req.file.mimetype);
+        const db = getDB();
+        const found = await db.collection('medical_records').findOne({ fileHash, mode: 'mint' });
+        if (found) {
+            const { _id, fileHash: _, mode, ...details } = found;
+            res.status(200).json({ verified: true, record: details });
+        } else {
+            res.status(404).json({ verified: false, message: 'Tampered or unregistered file detected.' });
+        }
+    } catch (error) {
         res.status(500).json({ message: error.message });
     }
 });
@@ -91,8 +122,6 @@ module.exports = app;
 
 if (require.main === module) {
     connectToDB().then(() => {
-        app.listen(PORT, () => {
-            console.log(`Server is running on port ${PORT}`);
-        });
+        app.listen(PORT, () => console.log(`MediSure server running on port ${PORT}`));
     });
 }
