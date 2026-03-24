@@ -23,9 +23,9 @@ function App() {
         {isDarkMode ? '☀️' : '🌙'}
       </button>
 
-      <div style={{ padding: '60px 20px', display: 'flex', justifyContent: 'center' }}>
+      <div className="main-wrapper">
         {!userRole ? (
-          <div style={{ width: '100%', maxWidth: '720px' }}>
+          <div className="content-holder" style={{ maxWidth: '720px' }}>
             <div className="welcome-container" style={{ textAlign: 'center' }}>
               <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '12px', marginBottom: '16px' }}>
                 <ShieldCheck size={36} color="var(--primary-color)" />
@@ -55,17 +55,17 @@ function App() {
             </div>
           </div>
         ) : (
-          <div style={{ width: '100%', maxWidth: '800px' }}>
+          <div className="content-holder">
             <button className="back-button" onClick={() => setUserRole(null)}>
               &larr; Back
             </button>
 
             {userRole === 'institution' && (
-              <div className="welcome-container">
+              <div className="welcome-container" style={{ textAlign: 'center' }}>
                 <h2>Institution Dashboard</h2>
-                <div className="role-buttons" style={{ flexDirection: 'row', flexWrap: 'wrap', gap: '16px' }}>
-                  <button style={{ flex: '1 1 calc(50% - 8px)' }} onClick={() => setUserRole('institution-basic')}>Basic Record Form</button>
-                  <button style={{ flex: '1 1 calc(50% - 8px)' }} onClick={() => setUserRole('institution-mint')}>Mint File Upload</button>
+                <div className="role-buttons" style={{ flexDirection: 'row', flexWrap: 'wrap', gap: '16px', justifyContent: 'center' }}>
+                  <button style={{ flex: '1 1 calc(50% - 8px)', maxWidth: '300px' }} onClick={() => setUserRole('institution-basic')}>Basic Record Form</button>
+                  <button style={{ flex: '1 1 calc(50% - 8px)', maxWidth: '300px' }} onClick={() => setUserRole('institution-mint')}>Mint File Upload</button>
                 </div>
               </div>
             )}
@@ -79,5 +79,4 @@ function App() {
     </>
   );
 }
-
 export default App;
