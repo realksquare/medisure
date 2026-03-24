@@ -57,19 +57,19 @@ function App() {
               <div>
                 <h4 style={{ color: 'var(--text-main)', marginBottom: '5px' }}>⦿ The Problem with Medical Records Today</h4>
                 <p style={{ color: 'var(--text-muted)', fontSize: '0.95rem', lineHeight: '1.5', margin: 0 }}>
-                  Forged prescriptions, tampered lab reports, and fabricated discharge summaries are a growing threat. Manual verification is slow, error-prone, and exploitable — putting patient lives at risk.
+                  Forged prescriptions, tampered lab reports, and fabricated discharge summaries are a growing threat. Manual verification is slow, error-prone, and exploitable - putting patient lives at risk.
                 </p>
               </div>
               <div>
                 <h4 style={{ color: 'var(--text-main)', marginBottom: '5px' }}>⦿ How MediSure Solves It</h4>
                 <p style={{ color: 'var(--text-muted)', fontSize: '0.95rem', lineHeight: '1.5', margin: 0 }}>
-                  MediSure uses <strong>server-side SHA-256 cryptographic hashing</strong> to create a tamper-proof fingerprint of every medical record. The server — not the client — is always the source of truth, eliminating any possibility of hash manipulation before storage.
+                  MediSure uses <strong>server-side SHA-256 cryptographic hashing</strong> to create a tamper-proof fingerprint of every medical record. The server, not the client - is always the source of truth, eliminating any possibility of hash manipulation before storage.
                 </p>
               </div>
               <div>
                 <h4 style={{ color: 'var(--text-main)', marginBottom: '5px' }}>⦿ Two Modes, Complete Coverage</h4>
                 <p style={{ color: 'var(--text-muted)', fontSize: '0.95rem', lineHeight: '1.5', margin: 0 }}>
-                  <strong>Basic Mode</strong> — QR code verification renders the official server-side record instantly, making physical paper irrelevant. <strong>Mint Mode</strong> — SHA-256 hashes the entire file byte-for-byte. Even a single pixel change is automatically flagged as tampered, with zero human review needed.
+                  <strong>Basic Mode</strong> - QR code verification renders the official server-side record instantly, making physical paper irrelevant. <strong>Mint Mode</strong> - SHA-256 hashes the entire file byte-for-byte. Even a single pixel change is automatically flagged as tampered, with zero human review needed.
                 </p>
               </div>
             </div>
@@ -101,7 +101,7 @@ function App() {
           {userRole === 'institution-mint' && <InstitutionPdfUpload />}
           {userRole === 'institution-bulk' && (
             <div style={{ textAlign: 'center', padding: '40px', border: '1px dashed var(--glass-border)', borderRadius: '12px', marginTop: '20px' }}>
-              <h3 style={{ color: 'var(--text-main)' }}>🚧 Bulk Upload — Coming Soon</h3>
+              <h3 style={{ color: 'var(--text-main)' }}>🚧 Bulk Upload - Coming Soon</h3>
               <p style={{ color: 'var(--text-muted)' }}>Batch issue and hash hundreds of medical records simultaneously with a single Excel/CSV upload.</p>
             </div>
           )}
