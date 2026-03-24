@@ -7,20 +7,20 @@ import './App.css';
 
 function App() {
   const [userRole, setUserRole] = useState(null);
-  const [isDarkMode, setIsDarkMode] = useState(false);
+  const [isDark, setIsDark] = useState(true);
 
   useEffect(() => {
-    if (isDarkMode) {
-      document.body.classList.add('light-theme');
+    if (isDark) {
+      document.documentElement.classList.add('light-theme');
     } else {
-      document.body.classList.remove('light-theme');
+      document.documentElement.classList.remove('light-theme');
     }
-  }, [isDarkMode]);
+  }, [isDark]);
 
   return (
     <>
-      <button className="theme-toggle" onClick={() => setIsDarkMode(!isDarkMode)}>
-        {isDarkMode ? '☀️' : '🌙'}
+      <button className="theme-toggle" onClick={() => setIsDark(!isDark)}>
+        {isDark ? '☀️' : '🌙'}
       </button>
 
       <div className="main-wrapper">
@@ -79,4 +79,5 @@ function App() {
     </>
   );
 }
+
 export default App;
