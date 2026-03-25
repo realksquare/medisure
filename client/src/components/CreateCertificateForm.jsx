@@ -61,7 +61,12 @@ export default function CreateCertificateForm() {
       <form onSubmit={handleSubmit}>
 
         <p className="record-section-label">Patient Information</p>
-        <input type="text" name="patientName" placeholder="Patient Name" value={formData.patientName} onChange={handleChange} required />
+        <input
+          type="text" name="patientName" placeholder="Patient Name"
+          value={formData.patientName} onChange={handleChange}
+          pattern="[A-Za-z\s]+" title="Name should contain letters only"
+          minLength={2} required
+        />
 
         <div style={{ display: 'flex', gap: '12px' }}>
           <select name="gender" value={formData.gender} onChange={handleChange} required>
@@ -70,7 +75,11 @@ export default function CreateCertificateForm() {
             <option value="Female">Female</option>
             <option value="Other">Other</option>
           </select>
-          <input type="number" name="age" placeholder="Age" value={formData.age} onChange={handleChange} required />
+          <input
+            type="number" name="age" placeholder="Age"
+            value={formData.age} onChange={handleChange}
+            min={0} max={150} required
+          />
         </div>
 
         <div style={{ display: 'flex', gap: '12px' }}>
@@ -83,10 +92,27 @@ export default function CreateCertificateForm() {
           </select>
         </div>
 
-        <input type="text" name="registerNumber" placeholder="Patient ID / Register Number" value={formData.registerNumber} onChange={handleChange} required />
-        <input type="tel" name="contactNumber" placeholder="Contact Number" value={formData.contactNumber} onChange={handleChange} required />
-        <input type="text" name="address" placeholder="Address" value={formData.address} onChange={handleChange} required />
-        <input type="text" name="existingConditions" placeholder="Existing Conditions (or 'None')" value={formData.existingConditions} onChange={handleChange} required />
+        <input
+          type="text" name="registerNumber" placeholder="Patient ID / Register Number"
+          value={formData.registerNumber} onChange={handleChange}
+          minLength={3} required
+        />
+        <input
+          type="tel" name="contactNumber" placeholder="Contact Number"
+          value={formData.contactNumber} onChange={handleChange}
+          pattern="[0-9]{7,15}" title="Enter a valid contact number (digits only)"
+          required
+        />
+        <input
+          type="text" name="address" placeholder="Address"
+          value={formData.address} onChange={handleChange}
+          minLength={5} required
+        />
+        <input
+          type="text" name="existingConditions" placeholder="Existing Conditions (or 'None')"
+          value={formData.existingConditions} onChange={handleChange}
+          required
+        />
 
         <p className="record-section-label" style={{ marginTop: '8px' }}>Medical Details</p>
         <select name="recordType" value={formData.recordType} onChange={handleChange} required>
@@ -97,12 +123,25 @@ export default function CreateCertificateForm() {
           <option value="Vaccination Record">Vaccination Record</option>
           <option value="Radiology Report">Radiology Report</option>
         </select>
-        <input type="text" name="diagnosis" placeholder="Diagnosis" value={formData.diagnosis} onChange={handleChange} required />
-        <input type="text" name="doctorName" placeholder="Attending Doctor" value={formData.doctorName} onChange={handleChange} required />
+        <input
+          type="text" name="diagnosis" placeholder="Diagnosis"
+          value={formData.diagnosis} onChange={handleChange}
+          minLength={2} required
+        />
+        <input
+          type="text" name="doctorName" placeholder="Attending Doctor"
+          value={formData.doctorName} onChange={handleChange}
+          pattern="[A-Za-z\s\.]+" title="Doctor name should contain letters only"
+          minLength={2} required
+        />
 
         <p className="record-section-label" style={{ marginTop: '8px' }}>Issuance Details</p>
         <input type="date" name="issueDate" value={formData.issueDate} onChange={handleChange} required />
-        <input type="text" name="issuerName" placeholder="Hospital / Issuer Name" value={formData.issuerName} onChange={handleChange} required />
+        <input
+          type="text" name="issuerName" placeholder="Hospital / Issuer Name"
+          value={formData.issuerName} onChange={handleChange}
+          minLength={2} required
+        />
 
         <button type="submit" disabled={isProcessing} style={{ marginTop: '20px' }}>
           {isProcessing ? 'Generating Record...' : 'Create Record'}
