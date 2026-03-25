@@ -26,7 +26,7 @@ export default function CreateCertificateForm() {
     setIsProcessing(true);
 
     try {
-      const res = await fetch(`${import.meta.env.VITE_API_URL}/api/create-record`, {
+      const res = await fetch(`${import.meta.env.VITE_BACKEND_URL}/api/create-record`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ recordData: formData }),
@@ -47,13 +47,12 @@ export default function CreateCertificateForm() {
 
   const downloadQR = () => {
     if (!qrCode) return;
-    const downloadLink = document.createElement('a');
-    downloadLink.href = qrCode;
-    const formattedName = formData.patientName.trim().replace(/\s+/g, '_').toLowerCase() || 'patient';
-    downloadLink.download = `${formattedName}_medisure_qr.png`;
-    document.body.appendChild(downloadLink);
-    downloadLink.click();
-    document.body.removeChild(downloadLink);
+    const link = document.createElement('a');
+    link.href = qrCode;
+    link.download = `${formData.patientName.trim().replace(/\s+/g, '_').toLowerCase() || 'patient'}_medisure_qr.png`;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
   };
 
   return (
@@ -61,10 +60,10 @@ export default function CreateCertificateForm() {
       <h2>Create Medical Record</h2>
       <form onSubmit={handleSubmit}>
 
-        <div className="section-title">Patient Information</div>
+        <p className="record-section-label">Patient Information</p>
         <input type="text" name="patientName" placeholder="Patient Name" value={formData.patientName} onChange={handleChange} required />
 
-        <div style={{ display: 'flex', gap: '16px' }}>
+        <div style={{ display: 'flex', gap: '12px' }}>
           <select name="gender" value={formData.gender} onChange={handleChange} required>
             <option value="" disabled>Gender</option>
             <option value="Male">Male</option>
@@ -74,7 +73,7 @@ export default function CreateCertificateForm() {
           <input type="number" name="age" placeholder="Age" value={formData.age} onChange={handleChange} required />
         </div>
 
-        <div style={{ display: 'flex', gap: '16px' }}>
+        <div style={{ display: 'flex', gap: '12px' }}>
           <input type="date" name="dob" value={formData.dob} onChange={handleChange} required />
           <select name="bloodGroup" value={formData.bloodGroup} onChange={handleChange} required>
             <option value="" disabled>Blood Group</option>
@@ -89,7 +88,7 @@ export default function CreateCertificateForm() {
         <input type="text" name="address" placeholder="Address" value={formData.address} onChange={handleChange} required />
         <input type="text" name="existingConditions" placeholder="Existing Conditions (or 'None')" value={formData.existingConditions} onChange={handleChange} required />
 
-        <div className="section-title">Medical Details</div>
+        <p className="record-section-label" style={{ marginTop: '8px' }}>Medical Details</p>
         <select name="recordType" value={formData.recordType} onChange={handleChange} required>
           <option value="" disabled>Select Record Type</option>
           <option value="Lab Report">Lab Report</option>
@@ -101,7 +100,7 @@ export default function CreateCertificateForm() {
         <input type="text" name="diagnosis" placeholder="Diagnosis" value={formData.diagnosis} onChange={handleChange} required />
         <input type="text" name="doctorName" placeholder="Attending Doctor" value={formData.doctorName} onChange={handleChange} required />
 
-        <div className="section-title">Issuance Details</div>
+        <p className="record-section-label" style={{ marginTop: '8px' }}>Issuance Details</p>
         <input type="date" name="issueDate" value={formData.issueDate} onChange={handleChange} required />
         <input type="text" name="issuerName" placeholder="Hospital / Issuer Name" value={formData.issuerName} onChange={handleChange} required />
 
@@ -110,13 +109,20 @@ export default function CreateCertificateForm() {
         </button>
       </form>
 
-      {errorMessage && <div style={{ color: 'var(--danger-color)', marginTop: '20px', fontSize: '0.9rem' }}>{errorMessage}</div>}
+      {errorMessage && (
+        <div className="result-box error-box" style={{ marginTop: '24px' }}>
+          <p className="result-title">❌ {errorMessage}</p>
+        </div>
+      )}
 
       {response && qrCode && (
-        <div style={{ marginTop: '30px', padding: '24px', border: '1px solid var(--border-color)', borderRadius: '12px', textAlign: 'center' }}>
-          <h3 style={{ color: 'var(--success-color)', fontSize: '1.1rem', marginBottom: '16px' }}>Record Generated Successfully</h3>
-          <img src={qrCode} alt="Medical Record QR Code" style={{ width: '200px', height: '200px', borderRadius: '8px', marginBottom: '20px' }} />
-          <button onClick={downloadQR} className="secondary-btn">Download QR Code</button>
+        <div className="result-box success-box" style={{ marginTop: '24px', textAlign: 'center' }}>
+          <p className="result-title">✅ Record Generated Successfully!</p>
+          <img src={qrCode} alt="Medical Record QR Code" style={{ width: '200px', height: '200px', borderRadius: '8px', marginBottom: '16px' }} />
+          <br />
+          <button className="secondary-btn" style={{ width: 'auto', padding: '10px 24px' }} onClick={downloadQR}>
+            Download QR Code
+          </button>
         </div>
       )}
     </div>
