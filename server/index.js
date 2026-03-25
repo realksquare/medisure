@@ -44,13 +44,17 @@ function createStableHash(data) {
 async function hashFileBuffer(buffer, mimetype) {
     let normalizedBuffer = buffer;
     if (mimetype === 'image/jpeg' || mimetype === 'image/png') {
-        normalizedBuffer = await sharp(buffer).removeMetadata().toBuffer();
+        normalizedBuffer = await sharp(buffer).toBuffer();
     }
     return crypto.createHash('sha256').update(normalizedBuffer).digest('hex');
 }
 
 app.get('/', (req, res) => {
     res.json({ message: 'MediSure Backend is running!' });
+});
+
+app.get('/api/health', (req, res) => {
+    res.json({ status: 'ok' });
 });
 
 app.post('/api/create-record', async (req, res) => {
@@ -95,7 +99,7 @@ app.post('/api/create-record-file', upload.single('file'), async (req, res) => {
         const existing = await db.collection('medical_records').findOne({ fileHash });
         if (existing) return res.status(409).json({ message: 'This file record already exists.' });
         await db.collection('medical_records').insertOne({ ...parsedData, fileHash, mode: 'mint' });
-        res.status(201).json({ message: 'Mint record created successfully.', fileHash });
+        res.status(201).json({ message: 'Mint record created successfully.', dataHash: fileHash });
     } catch (error) {
         res.status(500).json({ message: error.message });
     }
