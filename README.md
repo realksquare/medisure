@@ -4,7 +4,7 @@
 
 🔗 Live Demo: https://medisure-certisure.vercel.app
 
-Welcome to the official repository for **MediSure**!
+Welcome to the official repository for **MediSure**, from the developer of **CertiSure** - Certificate Authentication System!
 
 ## 🏆 Awards & Recognition
 **2nd Prize Winner - Bio-Medical Engineering (BME) Project Expo 2026 at VTMT**
