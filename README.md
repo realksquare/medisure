@@ -11,7 +11,7 @@ Welcome to the official repository for **MediSure**, from the developer of **Cer
 
 **Judge's Feedback:** 
 > *"You can work on the field of Cyber Security, there you'll gain experience and can make good impact in your own way..."*
---  Embedded Systems Specialist Judge (Convinced by the core server-side hashing architecture in under 2 minutes).
+- Embedded Systems Specialist Judge (Convinced by the core server-side hashing architecture in under 2 minutes).
 
 ## The Problem
 Forged prescriptions, tampered lab reports, and falsified discharge summaries are a growing threat in healthcare. Manual verification is slow, error-prone, and easily exploited. Existing blockchain solutions are too heavy and too expensive for hospitals and clinics that just need a fast, reliable way to trust a document.
